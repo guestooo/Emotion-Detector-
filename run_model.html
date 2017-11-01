@@ -1,0 +1,183 @@
+<style>
+textarea {
+	resize: none;
+   width: 100%;
+   //height: calc(100% - 250px);
+   //height: 462px;
+}
+input {
+	width: 200px;
+}
+#Text {
+	display:inline-block;
+	width: calc(100% - 540px);
+	height: 10pt;
+	float: left;
+}
+#Label {
+	width: 500px;
+	min-height: 20px;
+	border:1px solid black;
+	text-align:center;
+	padding: 2px;
+}
+#Sliders {
+	display: inline-block;
+	float: right;
+	padding: 10px;
+}
+</style>
+
+<body style="background-color:#92a8d1;" >
+<div id="Main">
+	<div id="Text">
+		Одно предложение.</br>Чем короче тем лучше.</br>Только русский текст.</br>Максимум 140 символов.
+		</br></br>
+		<input type="text" id="myTextArea" name="fname"  maxlength="140">
+		</br></br>
+		<button onclick="Analyze_text()">Analyze text</button>
+	</div>
+	<div id="Sliders" style="text-align:center; border:1px solid black; font-size: 11pt;">
+		<div id="Label">
+		</div>
+		</br>
+		<center>Вопрос - Приказ (<span id="value_0">0</span>)</center>
+		<input type="range" min="-1" max="1" step="0.1" value="0" class="slider" id="slider_0" disabled>
+		</br></br>
+		<center>Отрицание - Одобрение + согласие (<span id="value_1">0</span>)</center>
+		<input type="range" min="-1" max="1" step="0.1" value="0" class="slider" id="slider_1" disabled>
+		</br></br>
+		<center>Вежливость - Грубость + злость (<span id="value_2">0</span>)</center>
+		<input type="range" min="-1" max="1" step="0.1" value="0" class="slider" id="slider_2" disabled>
+		</br></br>
+		<center>Желание + похоть - Отвращение (<span id="value_3">0</span>)</center>
+		<input type="range" min="-1" max="1" step="0.1" value="0" class="slider" id="slider_3" disabled>
+		</br></br>
+		<center>Уверенность - Робость + страх (<span id="value_4">0</span>)</center>
+		<input type="range" min="-1" max="1" step="0.1" value="0" class="slider" id="slider_4" disabled>
+		</br></br>
+		<center>Радость + шутка - Печаль + обида (<span id="value_5">0</span>)</center>
+		<input type="range" min="-1" max="1" step="0.1" value="0" class="slider" id="slider_5" disabled>
+		</br></br>
+		<center>Скука + апатия - Удивление + внимание (<span id="value_6">0</span>)</center>
+		<input type="range" min="-1" max="1" step="0.1" value="0" class="slider" id="slider_6" disabled>
+		</br></br>
+		<center>[<span id="value_all"></span>]</center>
+	</div>
+</div>
+</body>
+<script src="keras.js"></script>
+<script>
+	const maxlen = 140;
+	const char_dim = 41;
+	
+	function zeros(dimensions) {
+		var array = [];
+		for (var i = 0; i < dimensions[0]; ++i) {
+			array.push(dimensions.length == 1 ? 0 : zeros(dimensions.slice(1)));
+		}
+
+		return array;
+	}
+	
+	function ord_(x){
+		return {1:"One",2:"Two",3:"Three"}[opt];
+	}
+	
+	function ord_(x){   
+		switch(x){  
+			case ' ': return 1;
+			case ',': return 2;
+			case '.': return 3;
+			case '?': return 4;
+			case '!': return 5;
+			case '-': return 6;
+			default: return -1;     
+		}
+	}
+	
+	function ord(x){ 
+		return x.charCodeAt(0);
+	}
+	
+
+	function chars_to_vectors(chars) {
+		var arr = zeros([maxlen, char_dim])
+		var text = chars.toLowerCase()
+		console.log('Было: ', text)
+		text = text.replace(/[^а-яё\!\-\.\, ]/g, "");
+		text = text.substring(0, 140);
+		console.log('Стало: ', text)
+		
+		if (text.length > maxlen)
+			console.log('Too much characters in: ', text)
+	
+		start = maxlen - text.length
+		for (i = 0; i < text.length; i++) { 
+			c = text.toLowerCase()[i]
+			ind = ord_(c)
+			if (ind == -1)
+				ind = ord(c) - ord('а') + 7
+				
+			if (!(ind>= 0 && ind<char_dim))
+				console.log('WRONG CHARACTER: ', c, ord(c), ind)
+				
+			arr[start + i][ind] = 1
+		}
+		
+		return arr;
+	}
+	
+	
+	const model = new KerasJS.Model({
+	  filepaths: {
+		model: 'model.json',
+		weights: 'model_weights.buf',
+		metadata: 'model_metadata.json'
+	  },
+	  gpu: true
+	})
+	
+	
+	is_model_ready = false;
+	is_model_running = false;
+	
+	function Analyze_text(){
+		if (is_model_ready && !is_model_running){
+			console.log('start')
+			is_model_running = true
+			
+			text = document.getElementById("myTextArea").value
+			arr = chars_to_vectors(text)
+			
+			var merged = [].concat.apply([], arr);
+			const inputData = {
+				'input_1': new Float32Array(merged)
+			}
+
+			model.predict(inputData).then(outputData => {
+				correction_array = [4, 1, 4, 4, 4, 4, 4]
+				result_data = outputData['dense_2'];
+				for(var i=0; i< result_data.length; i++) {
+					result_data[i] = result_data[i]*correction_array[i];
+					if (result_data[i]<0) outputData[i] = 0
+					if (result_data[i]>1) outputData[i] = 1
+					
+					document.getElementById("slider_"+i).value = result_data[i]
+					document.getElementById("value_"+i).innerHTML = Math.round(result_data[i] * 100) / 100
+				}
+				
+				console.log(result_data)
+				
+				
+				setTimeout(function(){ is_model_running = false }, 100);
+			}).catch(err => {
+				console.log(err)
+			})
+		}
+	}
+	 
+	model.ready().then(() => {
+		is_model_ready = true;
+	}) 
+</script>
