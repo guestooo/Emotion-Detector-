@@ -39,6 +39,7 @@ input {
 	</div>
 	<div id="Sliders" style="text-align:center; border:1px solid black; font-size: 11pt;">
 		<div id="Label">
+			Загрузка модели...
 		</div>
 		</br>
 		<center>Вопрос - Приказ (<span id="value_0">0</span>)</center>
@@ -179,5 +180,6 @@ input {
 	 
 	model.ready().then(() => {
 		is_model_ready = true;
+		document.getElementById("Label").innerHTML = "Модель загружена!";
 	}) 
 </script>
