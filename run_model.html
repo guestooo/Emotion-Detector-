@@ -147,6 +147,7 @@ input {
 		if (is_model_ready && !is_model_running){
 			console.log('start')
 			is_model_running = true
+			document.getElementById("Label").innerHTML = "Анализ текста...";
 			
 			text = document.getElementById("myTextArea").value
 			arr = chars_to_vectors(text)
@@ -171,7 +172,9 @@ input {
 				console.log(result_data)
 				
 				
-				setTimeout(function(){ is_model_running = false }, 100);
+				setTimeout(function(){ is_model_running = false;
+						       document.getElementById("Label").innerHTML = "";
+						     }, 100);
 			}).catch(err => {
 				console.log(err)
 			})
