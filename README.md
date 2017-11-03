@@ -4,7 +4,7 @@ Deep learning text analyzing engine for web services and video games.
 You could test it [here](https://guestooo.github.io/Emotion-Detector-/run_model.html)
   
   
-#### Model structure:
+#### Model structure
 ![model structure](model.png )
   
   
