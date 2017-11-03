@@ -99,10 +99,9 @@ input {
 	function chars_to_vectors(chars) {
 		var arr = zeros([maxlen, char_dim])
 		var text = chars.toLowerCase()
-		console.log('Было: ', text)
+		
 		text = text.replace(/[^а-яё\!\-\.\, ]/g, "");
 		text = text.substring(0, 140);
-		console.log('Стало: ', text)
 		
 		if (text.length > maxlen)
 			console.log('Too much characters in: ', text)
