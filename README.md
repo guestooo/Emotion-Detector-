@@ -8,7 +8,7 @@ You could test it [here](https://guestooo.github.io/Emotion-Detector-/run_model.
 ![model structure](model.png )
   
   
-Trained on **257** sentences and tested on **10** sentences with current accuracy **59.74%** (Calculated from average of distances between actual and predicted vectors)
+Trained on **257** sentences and tested on **10** sentences with current accuracy **57.64%** (Where 0% is a pure random and 100% full match of data. Calculated from average of distances between actual and predicted vectors)
 
 #### Instruments
 Model implementation: [Keras](https://github.com/fchollet/keras)  
